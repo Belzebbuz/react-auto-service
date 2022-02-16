@@ -13,7 +13,7 @@ export default function SideMenu() {
             }}
         >
             <Toolbar />
-            <Box sx={{ overflow: 'auto' }}>
+            <Box sx={{ overflow: 'auto', mt: 1 }}>
                 <List>
                     <NavLink to='/dashBoard' className="navigation-link">
                         <ListItem button key='Главная'>

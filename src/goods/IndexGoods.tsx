@@ -1,16 +1,45 @@
-import { Autocomplete, Box, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Box, Button, FormGroup, Grid, MenuItem, Pagination, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import axios, { AxiosResponse } from "axios";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { goodsDTO } from "./goods.model";
+import { urlProducts } from "../endpoints";
+import Genericlist from "../utils/GenericList";
+import { productDTO } from "./product.model";
 
 export default function IndexGoods() {
 
+    const [products, setProducts] = useState<productDTO[]>()
+    const [totalAmountOfPages, setTotalAmountOfPages] = useState(0);
+    const [recordsPerPage, setRecordsPerPage] = useState(5);
+    const [page, setPage] = useState(1);
+    const [findWord, setFindWord] = useState('');
 
-    const goods: goodsDTO[] = [
-        { id: 1, name: 'Колесо', actualPrice: 100.34 },
-        { id: 2, name: 'Болт', actualPrice: 200.12 },
-        { id: 3, name: 'Гайка 3мм', actualPrice: 400.43 },
-        { id: 4, name: 'Гайка 10мм', actualPrice: 500.87 },
-    ];
+    async function findByName() {
+        console.log(findWord);
+        
+        if (findWord.length > 0) {
+            loadData(`${urlProducts}/searchByName/${findWord}`)
+        } else {
+            loadData(urlProducts);
+        }
+        setPage(1);
+    }
+
+    function loadData(url: string) {
+        axios.get(url, {
+            params: { page, recordsPerPage }
+        })
+            .then((response: AxiosResponse<productDTO[]>) => {
+                const totalAmountOfRecords = parseInt(response.headers['totalamountofrecords'], 10);
+                setTotalAmountOfPages(Math.ceil(totalAmountOfRecords / recordsPerPage));
+                setProducts(response.data);
+            })
+    }
+
+    useEffect(() => {
+        loadData(urlProducts);
+    }, [page, recordsPerPage])
+
 
     return (
         <Stack mt={2} spacing={2}>
@@ -19,71 +48,93 @@ export default function IndexGoods() {
                     Товары
                 </Typography>
                 <Link to='/goods/create'>
-                    <Button variant="contained" color="success" sx={{ mr: 2 }} style= {{marginTop: '2px'}}>
+                    <Button variant="contained" color="success" sx={{ mr: 2 }} style={{ marginTop: '2px' }}>
                         + Создать
                     </Button>
                 </Link>
             </Box>
-
-            <TextField
-                style={{ marginRight: '1rem' }}
-                label="Название товара"
-                variant="outlined" />
-            <TableContainer>
-                <Table
-                    sx={{ minWidth: 500, maxHeight: 200 }}
-                    stickyHeader>
-                    <colgroup>
-                        <col width="20%" />
-                        <col width="10%" />
-                        <col width="50%" />
-                        <col width="20%" />
-                    </colgroup>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell
-                                style={{ maxWidth: 1 }}>
-                            </TableCell>
-                            <TableCell
-                                style={{ minWidth: 3 }}>
-                                Номер
-                            </TableCell>
-                            <TableCell
-                                style={{ minWidth: 3 }}>
-                                Название
-                            </TableCell>
-                            <TableCell
-                                style={{ minWidth: 3 }}>
-                                Цена закупки
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {goods.map(good =>
-                            <TableRow key={good.id}>
-                                <TableCell>
-                                    <Button
-                                        style={{ marginRight: 4 }}
-                                        variant="outlined"
-                                        color="inherit"
-                                        size="small"><Link className="blackLink" to={`/goods/edit/${good.id}`}>Изменить</Link></Button>
-                                    <Button variant="outlined" color="error" size="small">
-                                        Удалить
-                                    </Button>
-                                </TableCell>
-                                <TableCell>
-                                    {good.id}
-                                </TableCell>
-                                <TableCell>
-                                    {good.name}
-                                </TableCell>
-                                <TableCell>
-                                    {good.actualPrice}
-                                </TableCell>
-                            </TableRow>)}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <FormGroup row >
+                <TextField
+                    sx={{width:'93%'}}
+                    label="Название товара"
+                    variant="outlined"
+                    onChange={(e) => setFindWord(e.target.value.toString())}
+                />
+                <Button variant="contained" disableElevation sx={{marginLeft: 'auto', mr: 2}} onClick={findByName}>
+                    Поиск
+                </Button>
+            </FormGroup>
+            <Genericlist list={products}>
+                <Paper sx={{ width: '99%' }}>
+                    <TableContainer>
+                        <Table
+                            stickyHeader>
+                            <colgroup>
+                                <col width="20%" />
+                                <col width="10%" />
+                                <col width="70%" />
+                            </colgroup>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell
+                                        style={{ maxWidth: 1 }}>
+                                    </TableCell>
+                                    <TableCell
+                                        style={{ minWidth: 3 }}>
+                                        Номер
+                                    </TableCell>
+                                    <TableCell
+                                        style={{ minWidth: 3 }}>
+                                        Название
+                                    </TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {products?.map(product =>
+                                    <TableRow key={product.id}>
+                                        <TableCell>
+                                            <Link className="blackLink" to={`/goods/edit/${product.id}`}>
+                                                <Button
+                                                    style={{ marginRight: 4 }}
+                                                    variant="outlined"
+                                                    color="inherit"
+                                                    size="small">Изменить</Button></Link>
+                                            <Button variant="outlined" color="error" size="small">
+                                                Удалить
+                                            </Button>
+                                        </TableCell>
+                                        <TableCell>
+                                            {product.id}
+                                        </TableCell>
+                                        <TableCell>
+                                            {product.name}
+                                        </TableCell>
+                                    </TableRow>)}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <Box display='flex' alignItems='center'>
+                        <Typography variant="body1" sx={{ ml: 2, mr: 2 }}>Кол-во строк на странице</Typography>
+                        <Select sx={{ borderRadius: 4, mt: 1, mb: 1, height: 40, width: 70, textAlign: 'center' }} defaultValue={5} color="primary"
+                            onChange={(e) => {
+                                setPage(1);
+                                setRecordsPerPage(parseInt(e.target.value.toString(), 10));
+                            }}>
+                            <MenuItem value={5}>5</MenuItem>
+                            <MenuItem value={10}>10</MenuItem>
+                            <MenuItem value={25}>25</MenuItem>
+                            <MenuItem value={50}>50</MenuItem>
+                        </Select>
+                        <Pagination
+                            sx={{ marginLeft: 'auto' }}
+                            count={totalAmountOfPages}
+                            onChange={((e, number) => setPage(number))}
+                            siblingCount={1} boundaryCount={1}
+                            page={page}
+                        />
+                    </Box>
+                </Paper>
+            </Genericlist>
         </Stack>
     )
 }

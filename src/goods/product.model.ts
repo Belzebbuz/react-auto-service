@@ -1,8 +1,8 @@
-export interface goodsDTO {
+export interface productDTO {
     id: number;
     name: string;
     actualPrice?: number;
 }
-export interface goodsCreationDTO {
+export interface productCreationDTO {
     name: string;
 }

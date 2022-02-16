@@ -2,15 +2,19 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { Field, Form, Formik, FormikHelpers } from "formik";
 import { Link } from "react-router-dom";
 import * as Yup from 'yup'
-import { goodsCreationDTO } from "./goods.model";
 import { TextField } from 'formik-material-ui'
+import { productCreationDTO } from "./product.model";
 
-export default function StorageForm(props: storageFormProps) {
+export default function EditGoodsForm(props: goodsFormProps) {
     return (
 
         <Formik
             initialValues={props.model}
-            onSubmit={props.onSubmit}>
+            onSubmit={props.onSubmit}
+            validationSchema={Yup.object({
+                name: Yup.string().required('Поле название обязательно для заполнения')
+            })}
+            >
             {(formikProps) => (
                 <Form>
                     <Stack sx={{ display: 'flex',mt: 10, alignItems: 'center', alignSelf: 'center' }} spacing={2}>
@@ -35,8 +39,8 @@ export default function StorageForm(props: storageFormProps) {
     )
 }
 
-interface storageFormProps {
-    model: goodsCreationDTO;
+interface goodsFormProps {
+    model: productCreationDTO;
     displayTitle: string;
-    onSubmit(values: goodsCreationDTO, action: FormikHelpers<goodsCreationDTO>): void;
+    onSubmit(values: productCreationDTO, action: FormikHelpers<productCreationDTO>): void;
 }
